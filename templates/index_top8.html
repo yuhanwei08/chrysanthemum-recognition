@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrysanthemum Recognition System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #2b5a3a 0%, #1e4a2f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 700px;
+            padding: 40px;
+            border: 1px solid #e8c9a0;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2b5a3a;
+            margin-bottom: 10px;
+            font-size: 32px;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #b38b5d;
+            margin-bottom: 30px;
+            font-size: 16px;
+            border-bottom: 2px dashed #e8c9a0;
+            padding-bottom: 15px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #2b5a3a;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #b38b5d;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            background: #fef9f0;
+        }
+        
+        .upload-area:hover {
+            border-color: #2b5a3a;
+            background: #fff5e6;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text {
+            color: #2b5a3a;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .preview-container {
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .preview-container.show {
+            display: block;
+        }
+        
+        #preview {
+            max-width: 100%;
+            max-height: 350px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 3px solid #e8c9a0;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .button {
+            flex: 1;
+            background: linear-gradient(135deg, #2b5a3a 0%, #1e4a2f 100%);
+            color: white;
+            border: none;
+            padding: 14px 0;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(43,90,58,0.4);
+        }
+        
+        .button.secondary {
+            background: linear-gradient(135deg, #b38b5d 0%, #9e7a4f 100%);
+        }
+        
+        .result-container {
+            background: #fef9f0;
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            display: none;
+            border: 2px solid #e8c9a0;
+        }
+        
+        .result-container.show {
+            display: block;
+        }
+        
+        .result-title {
+            font-size: 20px;
+            color: #2b5a3a;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .prediction-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid #e8c9a0;
+        }
+        
+        .prediction-item:first-child {
+            background: #fff0d9;
+            border: 2px solid #b38b5d;
+        }
+        
+        .prediction-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .prediction-class {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2b5a3a;
+        }
+        
+        .prediction-rank {
+            background: #b38b5d;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 12px;
+            background: #e8e8e8;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2b5a3a, #b38b5d);
+            border-radius: 6px;
+            transition: width 0.5s;
+        }
+        
+        .all-classes {
+            margin-top: 20px;
+            border-top: 2px dashed #e8c9a0;
+            padding-top: 20px;
+        }
+        
+        .class-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .class-tag {
+            background: white;
+            color: #2b5a3a;
+            padding: 6px 15px;
+            border-radius: 25px;
+            font-size: 14px;
+            border: 1px solid #b38b5d;
+        }
+        
+        .class-tag.highlight {
+            background: #2b5a3a;
+            color: white;
+            border-color: #2b5a3a;
+            font-weight: 600;
+        }
+        
+        .loading {
+            text-align: center;
+            margin: 30px 0;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2b5a3a;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer {
+            text-align: center;
+            color: #b38b5d;
+            font-size: 14px;
+            margin-top: 30px;
+        }
+    
+        #statusMessage { color: #734328; font-size: 14px; line-height: 1.5;
+            text-align: center; margin: 14px 0; }
+        #statusMessage:empty { display: none; }
+        .label-note { color: #68645d; font-size: 12px; line-height: 1.5;
+            margin-top: 12px; text-align: center; }
+        .prediction-header { gap: 10px; flex-wrap: wrap; }
+        .class-tag { overflow-wrap: anywhere; }
+        .button-group { flex-wrap: wrap; }
+        .button { min-width: 0; }
+        .upload-area:focus-visible { outline: 3px solid #b38b5d; outline-offset: 4px; }
+        @media (max-width: 480px) {
+            body { padding: 12px; }
+            .container { padding: 24px 18px; border-radius: 20px; }
+            h1 { font-size: 25px; line-height: 1.3; }
+            .button { flex: 1 1 100%; padding: 13px 12px; font-size: 15px; }
+            .upload-area { padding: 30px 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌼 Chrysanthemum Recognition</h1>
+        <div class="subtitle">
+            <span class="badge">8 Classes</span>
+            <span class="badge">Top-3 Predictions</span>
+        </div>
+        
+        <div class="upload-area" id="uploadArea" role="button" tabindex="0" aria-label="Choose a flower image">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Click or drag an image here</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" aria-label="Choose a flower image">
+        
+        <div class="preview-container" id="previewContainer">
+            <img id="preview" src="" alt="Uploaded flower image">
+        </div>
+        
+        <div class="button-group">
+            <button class="button" id="recognizeBtn" disabled>🔍 Recognise</button>
+            <button class="button secondary" id="resetBtn">🔄 Choose Another Image</button>
+        </div>
+        
+        <p id="statusMessage" role="status" aria-live="polite"></p>
+
+        <div class="loading" id="loading" role="status" aria-live="polite">
+            <div class="spinner"></div>
+            <div style="color: #2b5a3a;">Recognising image...</div>
+        </div>
+        
+        <div class="result-container" id="resultContainer" aria-live="polite">
+            <div class="result-title">✨ Predictions</div>
+            <div id="predictions"></div>
+            
+            <div class="all-classes">
+                <div class="result-title">🌸 Supported Classes (8)</div>
+                <div class="class-tags" id="classTags"></div>
+                <p class="label-note">Class names are transliterated from the original dataset labels.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            EfficientNet-B3 · Image Classification
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const preview = document.getElementById('preview');
+        const recognizeBtn = document.getElementById('recognizeBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const loading = document.getElementById('loading');
+        const resultContainer = document.getElementById('resultContainer');
+        const predictionsDiv = document.getElementById('predictions');
+        const classTags = document.getElementById('classTags');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Keep backend labels unchanged; translate only their visible names.
+        const classLabels = {
+            '乒乓菊': 'Pingpang Ju',
+            '勋章菊': 'Xunzhang Ju',
+            '墨菊': 'Mo Ju',
+            '波斯菊': 'Bosi Ju',
+            '金丝皇菊': 'Jinsi Huang Ju',
+            '金鸡菊': 'Jinji Ju',
+            '雏菊': 'Chu Ju',
+            '黑眼菊': 'Heiyan Ju'
+        };
+        function classLabel(value) {
+            return classLabels[value] || (/^[\x20-\x7E]+$/.test(String(value)) ? String(value) : 'Unmapped Class');
+        }
+        let currentFile = null;
+        let busy = false;
+        let readVersion = 0;
+
+        async function loadInfo() {
+            if (location.protocol === 'file:') {
+                statusMessage.textContent = 'Interface preview only. Start the Flask application to enable recognition.';
+                return;
+            }
+            try {
+                const response = await fetch('/api/info');
+                if (!response.ok) throw new Error('Service unavailable');
+                const data = await response.json();
+                if (!Array.isArray(data.classes)) throw new Error('Invalid response');
+                displayClassTags(data.classes);
+            } catch {
+                statusMessage.textContent = 'Cannot connect to the recognition service. Make sure the Flask application is running.';
+            }
+        }
+        loadInfo();
+
+        uploadArea.addEventListener('click', () => { if (!busy) fileInput.click(); });
+        uploadArea.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                if (!busy) fileInput.click();
+            }
+        });
+        uploadArea.addEventListener('dragover', event => {
+            event.preventDefault();
+            if (!busy) uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', event => {
+            event.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (!busy) handleFileSelect(event.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', event => {
+            if (!busy) handleFileSelect(event.target.files[0]);
+        });
+        function handleFileSelect(file) {
+            if (!file) return;
+            if (!(file.type.startsWith('image/') || (!file.type && /\.(jpe?g|png|webp|bmp|gif)$/i.test(file.name)))) {
+                statusMessage.textContent = 'Please choose a valid image file.';
+                return;
+            }
+            const version = ++readVersion;
+            currentFile = null;
+            recognizeBtn.disabled = true;
+            resultContainer.classList.remove('show');
+            const reader = new FileReader();
+            reader.onload = event => {
+                if (version !== readVersion) return;
+                currentFile = file;
+                preview.src = event.target.result;
+                previewContainer.classList.add('show');
+                uploadArea.style.display = 'none';
+                recognizeBtn.disabled = false;
+                statusMessage.textContent = '';
+            };
+            reader.onerror = () => {
+                if (version === readVersion) statusMessage.textContent = 'Unable to read this file. Please choose another image.';
+            };
+            reader.readAsDataURL(file);
+        }
+        resetBtn.addEventListener('click', () => {
+            if (busy) return;
+            ++readVersion;
+            currentFile = null;
+            fileInput.value = '';
+            preview.removeAttribute('src');
+            previewContainer.classList.remove('show');
+            uploadArea.style.display = 'block';
+            recognizeBtn.disabled = true;
+            resultContainer.classList.remove('show');
+            statusMessage.textContent = '';
+        });
+        recognizeBtn.addEventListener('click', async () => {
+            if (!currentFile || busy) return;
+            busy = true;
+            loading.classList.add('show');
+            recognizeBtn.disabled = true;
+            resetBtn.disabled = true;
+            fileInput.disabled = true;
+            resultContainer.classList.remove('show');
+            statusMessage.textContent = '';
+            const formData = new FormData();
+            formData.append('image', currentFile);
+            try {
+                const response = await fetch('/api/predict', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (!response.ok || !data.success || !Array.isArray(data.predictions) || !data.predictions.length) {
+                    throw new Error('Prediction failed');
+                }
+                if (!data.predictions.every(pred => typeof pred.class === 'string' &&
+                    typeof pred.confidence === 'number' && Number.isFinite(pred.confidence) &&
+                    pred.confidence >= 0 && pred.confidence <= 1)) throw new Error('Invalid predictions');
+                displayPredictions(data.predictions);
+                highlightClass(data.top1?.class || data.predictions[0].class);
+                resultContainer.classList.add('show');
+            } catch {
+                statusMessage.textContent = 'Recognition failed. Check that the Flask service is running and try another image.';
+            } finally {
+                busy = false;
+                loading.classList.remove('show');
+                recognizeBtn.disabled = !currentFile;
+                resetBtn.disabled = false;
+                fileInput.disabled = false;
+            }
+        });
+        function displayPredictions(predictions) {
+            predictionsDiv.replaceChildren();
+            predictions.slice(0, 3).forEach((pred, index) => {
+                const item = document.createElement('div');
+                item.className = 'prediction-item';
+                const header = document.createElement('div');
+                header.className = 'prediction-header';
+                const name = document.createElement('span');
+                name.className = 'prediction-class';
+                name.textContent = classLabel(pred.class);
+                const rank = document.createElement('span');
+                rank.className = 'prediction-rank';
+                rank.textContent = 'Top ' + (index + 1);
+                header.append(name, rank);
+                const bar = document.createElement('div');
+                bar.className = 'confidence-bar';
+                const fill = document.createElement('div');
+                fill.className = 'confidence-fill';
+                fill.style.width = (pred.confidence * 100) + '%';
+                bar.append(fill);
+                const confidence = document.createElement('div');
+                confidence.textContent = 'Confidence: ' + (pred.confidence * 100).toFixed(2) + '%';
+                item.append(header, bar, confidence);
+                predictionsDiv.append(item);
+            });
+        }
+        function displayClassTags(classes) {
+            classTags.replaceChildren();
+            classes.forEach(cls => {
+                const tag = document.createElement('span');
+                tag.className = 'class-tag';
+                tag.textContent = classLabel(cls);
+                tag.dataset.class = cls;
+                classTags.append(tag);
+            });
+        }
+        function highlightClass(className) {
+            document.querySelectorAll('.class-tag').forEach(tag => {
+                tag.classList.toggle('highlight', tag.dataset.class === className);
+            });
+        }
+    </script>
+</body>
+</html>
